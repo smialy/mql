@@ -646,7 +646,7 @@ def test_delete():
 
 
 def test_show_databases():
-    stmt = parse('SHOW NAMESPACES')
+    stmt = parse('SHOW DATABASES')
     assert isinstance(stmt, ast.ShowDatabasesStatement)
 
 
@@ -660,15 +660,3 @@ def test_show_tables():
     assert isinstance(stmt, ast.ShowTablesStatement)
     assert isinstance(stmt.database, ast.Database)
     assert stmt.database.name == 'foo.bar'
-
-
-def test_shwo_table():
-    stmt = parse('SHOW TABLE foo')
-    assert isinstance(stmt, ast.ShowTableStatement)
-    assert isinstance(stmt.table, ast.Table)
-    assert stmt.table.name == 'foo'
-
-    stmt = parse('SHOW TABLE foo.bar')
-    assert isinstance(stmt, ast.ShowTableStatement)
-    assert isinstance(stmt.table, ast.Table)
-    assert stmt.table.name == 'foo.bar'
