@@ -11,3 +11,6 @@ class Source:
 
     async def execute(self, ast_stmt, params):
         return await self.engine.execute(ast_stmt, params)
+
+    async def describe(self):
+        return await self.schema.load()

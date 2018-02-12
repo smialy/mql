@@ -343,21 +343,6 @@ class Database(Node):
         return '<Database name={}>'.format(self.name)
 
 
-class ShowTableStatement(_ShowStatement):
-    __slots__ = ('table', )
-
-    def __init__(self, table):
-        self.table = table
-
-    def __repr__(self):
-        return '<DescribeTableStatement table={}>'.format(repr(self.table))
-
-
-class ShowTable(Table):
-    def __repr__(self):
-        return '<ShowTable name={}>'.format(self.name)
-
-
 def is_statement(node):
     return isinstance(node, Statement)
 
@@ -366,5 +351,5 @@ def is_show_statement(node):
     return isinstance(node, _ShowStatement)
 
 
-def is_show_database_statement(node):
+def is_show_databases_statement(node):
     return isinstance(node, ShowDatabasesStatement)

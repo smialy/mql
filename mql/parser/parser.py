@@ -244,14 +244,11 @@ def parse_statement(parser):
 def parse_show(parser):
     token = parser.expect_type(Tokens.KEYWORD)
     name = token.value.upper()
-    if name == 'NAMESPACES':
+    if name == 'DATABASES':
         return ast.ShowDatabasesStatement()
     if name == 'TABLES':
         value = parse_identifier_name(parser)
         return ast.ShowTablesStatement(ast.Database(value))
-    if name == 'TABLE':
-        value = parse_identifier_name(parser)
-        return ast.ShowTableStatement(ast.ShowTable(value))
     msg = 'Unknow show statement: {}'.format(name)
     raise MqlSyntaxError(msg, parser.source, token.start)
 
