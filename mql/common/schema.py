@@ -1,37 +1,22 @@
 
 class _Named:
-    def __init__(self, options):
-        self._name = options['name']
-        self._label = options.get('label', self.name.replace('_', ' '))
-        self._description = options.get('description', '')
+    def __init__(self, name):
+        self._name = name
 
     @property
     def name(self):
         return self._name
 
-    @property
-    def label(self):
-        return self._label
-
-    @property
-    def description(self):
-        return self._description
-
     def serialize(self, **extra_data):
         data = dict(
-            name=self.name,
-            label=self.label,
-            description=self.description
+            name=self.name
         )
         data.update(**extra_data)
         return data
 
 
-class Schema(_Named):
-    def __init__(self, options=None):
-        if options is None:
-            options = dict(name='default')
-        super().__init__(options)
+class Schema:
+    def __init__(self):
         self._databases = []
 
     def find_database(self, name):
@@ -57,8 +42,8 @@ class Schema(_Named):
 
 
 class Database(_Named):
-    def __init__(self, options):
-        super().__init__(options)
+    def __init__(self, name=''):
+        super().__init__(name)
         self._tables = []
 
     def add_table(self, table):
@@ -75,11 +60,16 @@ class Database(_Named):
 
 
 class Table(_Named):
-    def __init__(self, options):
-        super().__init__(options)
+    def __init__(self, name, kind):
+        super().__init__(name)
+        self._kind = kind
         self._columns = []
         self._relations = []
         self._primary_columns = []
+
+    @property
+    def kind(self):
+        return self._kind
 
     @property
     def columns(self):
@@ -91,34 +81,38 @@ class Table(_Named):
 
     @property
     def primary_columns(self):
-        return self._primary_columns[:]
+        return [column for column in self._columns if column.is_primary]
 
     def add_column(self, column):
         self._columns.append(column)
-        if column.is_primary:
-            self._primary_columns.append(column)
 
     def add_relations(self, relation):
         self._relations.append(relation)
 
     def serialize(self):
         return super().serialize(
-            primary_keys=[column.name for column in self._primary_columns],
-            columns=[column.serialize() for column in self._columns],
-            relations=[relation.serialize() for relation in self._relations]
+            keys=[column.name for column in self.primary_columns],
+            columns=[column.serialize() for column in self._columns]
+            # relations=[relation.serialize() for relation in self._relations]
         )
 
 
 class Column(_Named):
-    def __init__(self, options):
-        super().__init__(options);
-
-        self.type = options['type']
-        self.is_primary = options.get('is_primary', False)
+    def __init__(self, name, type, default_value=None, not_null=False, is_primary=False, length=-1):
+        super().__init__(name)
+        print(type)
+        self.type = type
+        self.default_value = default_value
+        self.not_null = not_null
+        self.length = length
+        self.is_primary = is_primary
 
     def serialize(self):
         return super().serialize(
             type=self.type,
+            not_null=self.not_null,
+            default_value=self.default_value,
+            length=self.length,
             is_primary=self.is_primary
         )
 

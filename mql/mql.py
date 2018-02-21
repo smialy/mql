@@ -8,8 +8,9 @@ from mql.common import ast, errors
 
 
 class Mql:
-    def __init__(self, default_database='default'):
-        self._sources = []
+    def __init__(self, schema, sources=None, default_database='default'):
+        self._schema = schema
+        self._sources = sources or []
         self._transformers = [
             DatabaseTransformer(default_database)
         ]
@@ -25,61 +26,75 @@ class Mql:
             ast_node = parse(query)
             for transformer in self._transformers:
                 ast_node = transformer.visit(ast_node)
-            executor = self._get_executor(ast_node, params)
-            return ExecuteResult(await executor.execute())
-        except Exception as ex:
-            print(ex)
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            print(exc_type, exc_value)
-            traceback.print_tb(exc_traceback)
 
+            context = ExecutionContext(
+                self._sources,
+                self._schema,
+                ast_node,
+                params,
+                query
+            )
+            executor = get_executor(context.ast_node)
+            return ExecuteResult(await executor.execute(context))
+        except Exception as ex:
+            # print(ex)
+            # exc_type, exc_value, exc_traceback = sys.exc_info()
+            # print(exc_type, exc_value)
+            # traceback.print_tb(exc_traceback)
             return ExecuteResult(errors=[ex])
 
-    def _get_executor(self, ast_node, params):
-        Excecutor = ExcecutorFinder().visit(ast_node)
-        return Excecutor(self._sources, ast_node, params)
+def get_executor(ast_node):
+    Excecutor = ExcecutorFinder().visit(ast_node)
+    return Excecutor()
+
+
+class ExecutionContext:
+    def __init__(self, sources, schema, ast_node, params, query):
+        self.errors = []
+        self.sources = sources
+        self.schema = schema
+        self.ast_node = ast_node
+        self.params = params
+        self.query = query
+
+    def report_error(self, error):
+        self.errors.append(error)
 
 
 class IExcecutor:
-    def __init__(self, sources, ast_node, params):
-        self.sources = sources
-        self.ast_node = ast_node
-        self.params = params
-
-    def execute(self):
+    def execute(self, context):
         pass
 
+
 class SourceExcecutor(IExcecutor):
-    async def execute(self):
-        source = self._find_source()
+    async def execute(self, context):
+        source = self._find_source(context)
         return await source.execute(
-            self.ast_node, self.params
+            context.ast_node, context.params
         )
 
-    def _find_source(self):
-        database_name = self.ast_node.table.database
-        for source in self.sources:
+    def _find_source(self, context):
+        database_name = context.ast_node.table.database
+        for source in context.sources:
             if source.match(database_name):
                 return source
         raise errors.MqlError('Not found database: {}'.format(database_name))
 
 
 class DatabasesExcecutor(IExcecutor):
-    async def execute(self):
-        buff = []
-        for source in self.sources:
-            buff.append(await source.describe())
-        return buff
+    async def execute(self, context):
+        return context.schema.serialize()
+
 
 class DescribeExcecutor(IExcecutor):
 
-    async def execute(self):
-        source = self._find_source()
+    async def execute(self, context):
+        source = self._find_source(context)
         return await source.describe()
 
-    def _find_source(self):
-        database_name = self.ast_node.database.name
-        for source in self.sources:
+    def _find_source(self, context):
+        database_name = context.ast_node.database.name
+        for source in self.context.sources:
             if source.match(database_name):
                 return source
         raise errors.MqlError('Not found database: {}'.format(database_name))
@@ -96,7 +111,7 @@ class ExecuteResult:
 
 class ExcecutorFinder(NodeVisitor):
 
-    def visit_SelectStatement(self):
+    def visit_SelectStatement(self, node):
         return SourceExcecutor
 
     def visit_ShowDatabasesStatement(self, node):

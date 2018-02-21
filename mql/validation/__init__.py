@@ -2,8 +2,8 @@ from mql.common.traverse import walk, NodeWalkers
 from .rules import default_rules
 
 
-def validate(sources, ast, rules=None):
-    rules = rules if rules else default_rules
+def validate(exe_context, rules=None):
+    rules = rules or default_rules
     context = ValidatorContext(sources, ast)
     walkers = [rule(context) for rule in rules]
     walk(ast, NodeWalkers(walkers))

@@ -29,9 +29,6 @@ class PgsqlEngine:
         except Exception as ex:
             raise MqlEnginError(*extract_error(ex))
 
-    async def describe(self):
-        return []
-
     def build_sql(self, ast_node):
         generator = SqlGenerator()
         generator.visit(ast_node)

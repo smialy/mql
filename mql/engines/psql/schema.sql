@@ -11,30 +11,36 @@ WITH
   -- relpersistence -- p = permanent table, u = unlogged table, t = temporary table
   class AS (
     SELECT
-      'table' AS "type",
+      'class' AS "type",
       oid AS "id",
       relname AS "name",
-      relnamespace AS "namespaceid",
-      reltype AS "typeid",
-      relkind not in ('i', 'c') AS "selectable",
-      (pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00010000') = B'00010000' AS "insertable",
-      (pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00001000') = B'00001000' AS "updatable",
-      (pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00000100') = B'00000100' AS "deletable"
+      relnamespace AS "namespace_id",
+      reltype AS "type_id",
+      relkind as "kind"
+      --,
+      --(pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00010000') = B'00010000' AS "insertable",
+      --(pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00001000') = B'00001000' AS "updatable",
+      --(pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00000100') = B'00000100' AS "deletable"
     FROM pg_catalog.pg_class
-    WHERE relnamespace in (SELECT "id" FROM namespace) and relpersistence in ('p') and relkind in ('r', 'v', 'm', 'c', 'f')
+    WHERE relnamespace in (SELECT "id" FROM namespace) and relpersistence in ('p') -- and relkind in ('r', 'v', 'm', 'c', 'f')
     ORDER BY relnamespace, relname
   ),
   -- @see https://www.postgresql.org/docs/9.5/static/catalog-pg-attribute.html
   attribute AS (
     SELECT
       'attribute' AS "type",
-      attrelid AS "classid",
-      attnum AS "num",
-      attname AS "name",
-      atttypid AS "typeid",
-      attnotnull AS "isnotnull",
-      atthasdef AS "hasdefault"
-    FROM pg_catalog.pg_attribute
+      a.attrelid AS "class_id",
+      a.attnum AS "num",
+      a.attname AS "name",
+      a.atttypid AS "type_id",
+      a.attnotnull AS "notnull",
+      a.atthasdef AS "hasdefault",
+      pg_catalog.format_type(a.atttypid, a.atttypmod) as stype,
+      d.adsrc AS svalue
+    FROM pg_catalog.pg_attribute a
+    LEFT JOIN pg_catalog.pg_attrdef d ON (a.attrelid, a.attnum)
+                                     = (d.adrelid,  d.adnum)
+
     WHERE attrelid in (SELECT "id" FROM class) AND attnum > 0 AND NOT attisdropped
     ORDER BY attrelid, attnum
   ),
@@ -43,9 +49,11 @@ WITH
     SELECT
       'constraint' as "type",
       conname as "name",
-      contype as "type",
-      conrelid as "classid",
-      nullif(confrelid, 0) as "fclassid"
+      contype as "kind",
+      conrelid as "class_id",
+      nullif(confrelid, 0) as "fclass_id",
+      conkey,
+      confkey
    FROM pg_catalog.pg_constraint
    WHERE
 	conrelid in (select "id" from class) AND
@@ -57,16 +65,16 @@ WITH
       'type' AS "type",
       oid as id,
       typname as name,
-      typnamespace as namespaceid,
+      typnamespace as namespace_id,
       typtype as kind,
       typcategory as category
 
     FROM
        pg_catalog.pg_type
     WHERE
-       oid IN (SELECT typeid FROM class) OR
-       oid IN (SELECT typeid FROM attribute)
-     ORDER BY namespaceid, name
+       oid IN (SELECT type_id FROM class) OR
+       oid IN (SELECT type_id FROM attribute)
+     ORDER BY namespace_id, name
   )
 SELECT row_to_json(x) AS object FROM namespace AS x
 UNION ALL
