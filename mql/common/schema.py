@@ -100,12 +100,16 @@ class Table(_Named):
 class Column(_Named):
     def __init__(self, name, type, default_value=None, not_null=False, is_primary=False, length=-1):
         super().__init__(name)
-        print(type)
+        # print(type)
         self.type = type
         self.default_value = default_value
         self.not_null = not_null
         self.length = length
         self.is_primary = is_primary
+        self.enum = []
+
+    def add_enum(self, value):
+        self.enum.append(value)
 
     def serialize(self):
         return super().serialize(
@@ -113,6 +117,7 @@ class Column(_Named):
             not_null=self.not_null,
             default_value=self.default_value,
             length=self.length,
+            enum=self.enum[:],
             is_primary=self.is_primary
         )
 

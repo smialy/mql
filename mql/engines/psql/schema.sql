@@ -68,17 +68,33 @@ WITH
       typnamespace as namespace_id,
       typtype as kind,
       typcategory as category
-
     FROM
        pg_catalog.pg_type
     WHERE
        oid IN (SELECT type_id FROM class) OR
        oid IN (SELECT type_id FROM attribute)
      ORDER BY namespace_id, name
-  )
+  ),
+ enums as (
+    SELECT
+      'enum' AS "type",
+      e.oid as id,
+      t.oid as type_id,
+      t.typname as name,
+      t.typnamespace as namespace_id,
+      e.enumlabel as label
+    FROM
+       pg_catalog.pg_type t
+       LEFT JOIN pg_catalog.pg_enum e ON t.oid = e.enumtypid
+    WHERE
+       t.typtype = 'e' AND t.oid IN (SELECT type_id FROM attribute)
+    ORDER BY namespace_id, name, label
+)
 SELECT row_to_json(x) AS object FROM namespace AS x
 UNION ALL
 SELECT row_to_json(x) AS object FROM "type" AS x
+UNION ALL
+SELECT row_to_json(x) AS object FROM "enums" AS x
 UNION ALL
 SELECT row_to_json(x) AS object FROM class AS x
 UNION ALL
