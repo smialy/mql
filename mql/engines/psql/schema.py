@@ -247,7 +247,7 @@ class Builder:
                 return node
 
     def get_schema(self, name):
-        db = schema.Database(name)
+        db = schema.Source(name)
         for table in self.get_tables():
             db.add_table(table)
         return db

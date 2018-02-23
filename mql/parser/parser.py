@@ -244,11 +244,11 @@ def parse_statement(parser):
 def parse_show(parser):
     token = parser.expect_type(Tokens.KEYWORD)
     name = token.value.upper()
-    if name == 'DATABASES':
-        return ast.ShowDatabasesStatement()
+    if name == 'SOURCES':
+        return ast.ShowSourcesStatement()
     if name == 'TABLES':
         value = parse_identifier_name(parser)
-        return ast.ShowTablesStatement(ast.Database(value))
+        return ast.ShowTablesStatement(ast.Source(value))
     msg = 'Unknow show statement: {}'.format(name)
     raise MqlSyntaxError(msg, parser.source, token.start)
 

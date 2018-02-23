@@ -6,7 +6,7 @@ def test_simple_schema():
         label='Schema label',
         description='Schema description'
     ))
-    assert sch.databases == []
+    assert sch.sources == []
 
     assert sch.name ==  'schema_name'
     assert sch.label == 'Schema label'
@@ -14,7 +14,7 @@ def test_simple_schema():
 
     data = sch.serialize()
 
-    assert data['databases'] == []
+    assert data['sources'] == []
 
     assert data['name'] ==  'schema_name'
     assert data['label'] == 'Schema label'
@@ -22,7 +22,7 @@ def test_simple_schema():
 
 def test_default_schema():
     sch = schema.Schema()
-    assert sch.databases == []
+    assert sch.sources == []
 
     assert sch.name ==  'default'
     assert sch.label == 'default'
@@ -30,45 +30,45 @@ def test_default_schema():
 
     data = sch.serialize()
 
-    assert data['databases'] == []
+    assert data['sources'] == []
 
     assert data['name'] ==  'default'
     assert data['label'] == 'default'
     assert data['description'] == ''
 
 
-def test_simple_database():
-    db = schema.Database(dict(
-        name='database_name',
-        label='Database label',
+def test_simple_source():
+    db = schema.Source(dict(
+        name='source_name',
+        label='Source label',
         description='Description'
     ))
     assert db.tables == []
 
-    assert db.name ==  'database_name'
-    assert db.label == 'Database label'
+    assert db.name ==  'source_name'
+    assert db.label == 'Source label'
     assert db.description == 'Description'
 
     data = db.serialize()
 
     assert data['tables'] == []
 
-    assert data['name'] ==  'database_name'
-    assert data['label'] == 'Database label'
+    assert data['name'] ==  'source_name'
+    assert data['label'] == 'Source label'
     assert data['description'] == 'Description'
 
-def test_default_database():
-    db = schema.Database(dict(
-        name='database_name'
+def test_default_source():
+    db = schema.Source(dict(
+        name='source_name'
     ))
-    assert db.name ==  'database_name'
-    assert db.label == 'database name'
+    assert db.name ==  'source_name'
+    assert db.label == 'source name'
     assert db.description == ''
 
 
-def test_add_table_to_database():
-    db = schema.Database(dict(
-        name='database_name'
+def test_add_table_to_source():
+    db = schema.Source(dict(
+        name='source_name'
     ))
     db.add_table(schema.Table(dict(
         name='table_name'

@@ -167,11 +167,11 @@ class SelectIdentifier(Node):
 
 
 class Table(Node):
-    __slots__ = ('name', 'database')
+    __slots__ = ('name', 'source')
 
-    def __init__(self, name, database=''):
+    def __init__(self, name, source=''):
         self.name = name
-        self.database = database
+        self.source = source
 
     def __repr__(self):
         return '<Table name={}>'.format(self.name)
@@ -179,8 +179,8 @@ class Table(Node):
 
 class SelectTable(Table):
     def __repr__(self):
-        return '<SelectTable database={} name={}>'.format(
-            self.database,
+        return '<SelectTable source={} name={}>'.format(
+            self.source,
             self.name
         )
 
@@ -275,8 +275,8 @@ class UpdateStatement(Statement):
 
 class UpdateTable(Table):
     def __repr__(self):
-        return '<UpdateTable database={} name={}>'.format(
-            self.database,
+        return '<UpdateTable source={} name={}>'.format(
+            self.source,
             self.name
         )
 
@@ -304,8 +304,8 @@ class DeleteStatement(Statement):
 
 class DeleteTable(Table):
     def __repr__(self):
-        return '<DeleteTable database={} name={}>'.format(
-            self.database,
+        return '<DeleteTable source={} name={}>'.format(
+            self.source,
             self.name
         )
 
@@ -314,33 +314,33 @@ class _ShowStatement(Statement):
     pass
 
 
-class ShowDatabasesStatement(_ShowStatement):
+class ShowSourcesStatement(_ShowStatement):
     __slots__ = []
 
     def __repr__(self):
-        return '<ShowDatabases>'
+        return '<ShowSources>'
 
 
 class ShowTablesStatement(_ShowStatement):
-    __slots__ = ('database', )
+    __slots__ = ('source', )
 
-    def __init__(self, database):
-        self.database = database
+    def __init__(self, source):
+        self.source = source
 
     def __repr__(self):
-        return '<ShowTableStatement database={}>'.format(
-            repr(self.database)
+        return '<ShowTableStatement source={}>'.format(
+            repr(self.source)
         )
 
 
-class Database(Node):
+class Source(Node):
     __slots__ = ('name', )
 
     def __init__(self, name):
         self.name = name
 
     def __repr__(self):
-        return '<Database name={}>'.format(self.name)
+        return '<Source name={}>'.format(self.name)
 
 
 def is_statement(node):
@@ -351,5 +351,5 @@ def is_show_statement(node):
     return isinstance(node, _ShowStatement)
 
 
-def is_show_databases_statement(node):
-    return isinstance(node, ShowDatabasesStatement)
+def is_show_sources_statement(node):
+    return isinstance(node, ShowSourcesStatement)

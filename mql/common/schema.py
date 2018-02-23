@@ -17,32 +17,32 @@ class _Named:
 
 class Schema:
     def __init__(self):
-        self._databases = []
+        self._sources = []
 
-    def add_database(self, database):
-        self._databases.append(database)
+    def add_source(self, source):
+        self._sources.append(source)
 
-    def find_database(self, name):
-        for database in self._databases:
-            if database.name == name:
-                return database
+    def find_source(self, name):
+        for source in self._sources:
+            if source.name == name:
+                return source
         return None
 
     @property
-    def databases(self):
-        return list(self._databases)
+    def sources(self):
+        return list(self._sources)
 
 
     def match(self, ast_node):
-        for database in self.databases:
-            if database.match(ast_node):
-                return database
+        for source in self.sources:
+            if source.match(ast_node):
+                return source
 
     def serialize(self):
-        return [database.serialize() for database in self._databases]
+        return [source.serialize() for source in self._sources]
 
 
-class Database(_Named):
+class Source(_Named):
     def __init__(self, name=''):
         super().__init__(name)
         self._tables = []

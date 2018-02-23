@@ -24,7 +24,7 @@ KEYWORDS = (
     'UPDATE',
     'VALUES',
     'WHERE',
-    'DATABASES',
+    'SOURCES',
 )
 
 OPERATORS = {

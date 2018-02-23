@@ -9,21 +9,21 @@ from mql.common.schema import Schema
 
 
 class Mql:
-    def __init__(self, databases=None, sources=None, default_database='default'):
+    def __init__(self, executors=None, sources=None, default_source='default'):
         self._schema = Schema()
-        self._sources = sources or []
+        self._executors = executors or []
         self._transformers = [
-            DatabaseTransformer(default_database)
+            SourceTransformer(default_source)
         ]
-        if databases:
-            for db in databases:
-                self.add_database(db)
+        if sources:
+            for db in sources:
+                self.add_source(db)
+
+    def add_executor(self, source):
+        self._executors.append(source)
 
     def add_source(self, source):
-        self._sources.append(source)
-
-    def add_database(self, database):
-        self._schema.add_database(database)
+        self._schema.add_source(source)
 
     def add_transformer(self, transformer):
         self._transformers.append(transformer)
@@ -35,7 +35,7 @@ class Mql:
                 ast_node = transformer.visit(ast_node)
 
             context = ExecutionContext(
-                self._sources,
+                self._executors,
                 self._schema,
                 ast_node,
                 params,
@@ -56,9 +56,9 @@ def get_executor(ast_node):
 
 
 class ExecutionContext:
-    def __init__(self, sources, schema, ast_node, params, query):
+    def __init__(self, executors, schema, ast_node, params, query):
         self.errors = []
-        self.sources = sources
+        self.executors = executors
         self.schema = schema
         self.ast_node = ast_node
         self.params = params
@@ -75,37 +75,37 @@ class IExcecutor:
 
 class SourceExcecutor(IExcecutor):
     async def execute(self, context):
-        source = self._find_source(context)
-        return await source.execute(
+        executor = self._find_executor(context)
+        return await executor.execute(
             context.ast_node, context.params
         )
 
-    def _find_source(self, context):
-        database_name = context.ast_node.table.database
-        for source in context.sources:
-            if source.match(database_name):
-                return source
-        raise errors.MqlError('Not found database: {}'.format(database_name))
+    def _find_executor(self, context):
+        source_name = context.ast_node.table.source
+        for executor in context.executors:
+            if executor.match(source_name):
+                return executor
+        raise errors.MqlError('Not found source: {}'.format(source_name))
 
 
-class DatabasesExcecutor(IExcecutor):
+class SourcesExcecutor(IExcecutor):
     async def execute(self, context):
-        databases = context.schema.databases
-        return [db.name for db in databases]
+        sources = context.schema.sources
+        return [db.name for db in sources]
 
 
 class DescribeExcecutor(IExcecutor):
     async def execute(self, context):
-        database = self._find_database(context)
-        return database.serialize()
+        source = self._find_source(context)
+        return source.serialize()
 
-    def _find_database(self, context):
-        database_name = context.ast_node.database.name
-        databases = context.schema.databases
-        for database in databases:
-            if database.name == database_name:
-                return database
-        raise errors.MqlError('Not found database: {}'.format(database_name))
+    def _find_source(self, context):
+        source_name = context.ast_node.source.name
+        sources = context.schema.sources
+        for source in sources:
+            if source.name == source_name:
+                return source
+        raise errors.MqlError('Not found source: {}'.format(source_name))
 
 
 class ExecuteResult:
@@ -123,14 +123,14 @@ class ExcecutorFinder(NodeVisitor):
     def visit_SelectStatement(self, node):
         return SourceExcecutor
 
-    def visit_ShowDatabasesStatement(self, node):
-        return DatabasesExcecutor
+    def visit_ShowSourcesStatement(self, node):
+        return SourcesExcecutor
 
     def visit_ShowTablesStatement(self, node):
         return DescribeExcecutor
 
 
-class DatabaseTransformer(NodeTransformer):
+class SourceTransformer(NodeTransformer):
     def __init__(self, default_name):
         self.default_name = default_name
 
@@ -138,12 +138,12 @@ class DatabaseTransformer(NodeTransformer):
         return self.fix_table_name(node)
 
     def fix_table_name(self, node):
-        if not node.table.database:
+        if not node.table.source:
             name = node.table.name
             parts = name.split('.')
             if len(parts) == 3:
-                node.table.database = parts.pop(0)
+                node.table.source = parts.pop(0)
                 node.table.name = '.'.join(parts)
             else:
-                node.table.database = self.default_name
+                node.table.source = self.default_name
         return node
