@@ -19,6 +19,9 @@ class Schema:
     def __init__(self):
         self._databases = []
 
+    def add_database(self, database):
+        self._databases.append(database)
+
     def find_database(self, name):
         for database in self._databases:
             if database.name == name:
@@ -27,7 +30,7 @@ class Schema:
 
     @property
     def databases(self):
-        return self._databases[:]
+        return list(self._databases)
 
 
     def match(self, ast_node):
@@ -36,9 +39,7 @@ class Schema:
                 return database
 
     def serialize(self):
-        return super().serialize(
-            databases=[database.serialize() for database in self._databases]
-        )
+        return [database.serialize() for database in self._databases]
 
 
 class Database(_Named):
@@ -60,47 +61,45 @@ class Database(_Named):
 
 
 class Table(_Named):
-    def __init__(self, name, kind):
+    def __init__(self, name, kind, editable=True):
         super().__init__(name)
         self._kind = kind
+        self._editable = editable
         self._columns = []
-        self._relations = []
-        self._primary_columns = []
+        self._constraints = []
 
     @property
     def kind(self):
         return self._kind
 
     @property
+    def editable(self):
+        return self._editable
+
+    @property
     def columns(self):
-        return self._columns[:]
+        return list(elf._columns)
 
     @property
-    def relations(self):
-        return self._relations[:]
-
-    @property
-    def primary_columns(self):
-        return [column for column in self._columns if column.is_primary]
+    def constraints(self):
+        return list(self._constraints)
 
     def add_column(self, column):
         self._columns.append(column)
 
-    def add_relations(self, relation):
-        self._relations.append(relation)
+    def add_constraint(self, constraint):
+        self._constraints.append(constraint)
 
     def serialize(self):
         return super().serialize(
-            keys=[column.name for column in self.primary_columns],
+            constraints=[constraint.serialize() for constraints in self._constraints],
             columns=[column.serialize() for column in self._columns]
-            # relations=[relation.serialize() for relation in self._relations]
         )
 
 
 class Column(_Named):
     def __init__(self, name, type, default_value=None, not_null=False, is_primary=False, length=-1):
         super().__init__(name)
-        # print(type)
         self.type = type
         self.default_value = default_value
         self.not_null = not_null

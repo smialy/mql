@@ -17,8 +17,8 @@ class PgsqlEngine:
         self.connection = connection
         self._transformers = []
 
-    async def load_schema(self):
-        return await load_schema(self.connection)
+    async def load_schema(self, name):
+        return await load_schema(self.connection, name)
 
     async def execute(self, ast_tree, params):
         sql = self.build_sql(ast_tree)

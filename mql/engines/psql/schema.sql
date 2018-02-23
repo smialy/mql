@@ -22,7 +22,9 @@ WITH
       --(pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00001000') = B'00001000' AS "updatable",
       --(pg_catalog.pg_relation_is_updatable(oid, true)::bit(8) & B'00000100') = B'00000100' AS "deletable"
     FROM pg_catalog.pg_class
-    WHERE relnamespace in (SELECT "id" FROM namespace) and relpersistence in ('p') -- and relkind in ('r', 'v', 'm', 'c', 'f')
+    WHERE relnamespace in (SELECT "id" FROM namespace)
+      and relpersistence in ('p')
+      and relkind in ('r', 'v', 'm', 'c', 'f')
     ORDER BY relnamespace, relname
   ),
   -- @see https://www.postgresql.org/docs/9.5/static/catalog-pg-attribute.html
@@ -96,8 +98,8 @@ SELECT row_to_json(x) AS object FROM "type" AS x
 UNION ALL
 SELECT row_to_json(x) AS object FROM "enums" AS x
 UNION ALL
+SELECT row_to_json(x) AS object FROM "constraint" AS x
+UNION ALL
 SELECT row_to_json(x) AS object FROM class AS x
 UNION ALL
 SELECT row_to_json(x) AS object FROM attribute AS x
-UNION ALL
-SELECT row_to_json(x) AS object FROM "constraint" AS x

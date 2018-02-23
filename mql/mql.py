@@ -5,18 +5,25 @@ from mql.parser.parser import parse, expression
 from mql.validation import validate
 from mql.common.traverse import NodeTransformer, NodeVisitor
 from mql.common import ast, errors
+from mql.common.schema import Schema
 
 
 class Mql:
-    def __init__(self, schema, sources=None, default_database='default'):
-        self._schema = schema
+    def __init__(self, databases=None, sources=None, default_database='default'):
+        self._schema = Schema()
         self._sources = sources or []
         self._transformers = [
             DatabaseTransformer(default_database)
         ]
+        if databases:
+            for db in databases:
+                self.add_database(db)
 
     def add_source(self, source):
         self._sources.append(source)
+
+    def add_database(self, database):
+        self._schema.add_database(database)
 
     def add_transformer(self, transformer):
         self._transformers.append(transformer)
@@ -83,20 +90,21 @@ class SourceExcecutor(IExcecutor):
 
 class DatabasesExcecutor(IExcecutor):
     async def execute(self, context):
-        return context.schema.serialize()
+        databases = context.schema.databases
+        return [db.name for db in databases]
 
 
 class DescribeExcecutor(IExcecutor):
-
     async def execute(self, context):
-        source = self._find_source(context)
-        return await source.describe()
+        database = self._find_database(context)
+        return database.serialize()
 
-    def _find_source(self, context):
+    def _find_database(self, context):
         database_name = context.ast_node.database.name
-        for source in self.context.sources:
-            if source.match(database_name):
-                return source
+        databases = context.schema.databases
+        for database in databases:
+            if database.name == database_name:
+                return database
         raise errors.MqlError('Not found database: {}'.format(database_name))
 
 
@@ -104,6 +112,7 @@ class ExecuteResult:
     def __init__(self, data=None, errors=None):
         self.data = data
         self.errors = errors
+        self.encoded = isinstance(data, str)
 
     def has_errors():
         return bool(self.errors)
@@ -118,7 +127,7 @@ class ExcecutorFinder(NodeVisitor):
         return DatabasesExcecutor
 
     def visit_ShowTablesStatement(self, node):
-        return  DescribeExcecutor
+        return DescribeExcecutor
 
 
 class DatabaseTransformer(NodeTransformer):
