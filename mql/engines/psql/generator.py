@@ -1,30 +1,33 @@
 from mql.common.traverse import NodeVisitor
 
 
-class Buffer:
+class NumberPlaceholder:
     def __init__(self):
+        self.placeholder = 1
+
+    def __call__(self):
+        num = self.placeholder
+        self.placeholder+=1
+        return '${}'.format(num)
+
+
+def percent_placeholder():
+    return '%s'
+
+
+PLACEHOLDERS = {
+    'number': lambda: NumberPlaceholder(),
+    'percent': lambda: percent_placeholder
+}
+
+
+class SqlGenerator(NodeVisitor):
+    def __init__(self, placeholder='percent'):
+        self.placeholder = PLACEHOLDERS[placeholder]()
         self._buff = []
-        self._queue = []
-
-    def append(self, text):
-        self._flush()
-        self._buff.append(text)
-
-    def last(self):
-        return self._buff[:-1]
 
     def to_sql(self):
-        self._flush()
-        return ''.join(self._buff)
-
-    def _flush(self):
-        while len(self._queue):
-            self._buff.append(self._queue.pop());
-
-
-class Printer(NodeVisitor):
-    def __init__(self):
-        self._buff = []
+        return self.get_value()
 
     def token(self, item):
         self.append(item)
@@ -33,14 +36,6 @@ class Printer(NodeVisitor):
     def append(self, item):
         self._buff.append(item)
 
-    def visitList(self, items, separator=','):
-        for i, item in enumerate(items):
-            self.visit(item)
-            if i < len(items) - 1:
-                self._buff.append(separator)
-                self.space()
-        self.space()
-
     def space(self):
         if self._buff[:-1] != ' ':
             self._buff.append(' ')
@@ -48,9 +43,13 @@ class Printer(NodeVisitor):
     def get_value(self):
         return ''.join(self._buff)
 
-class SqlGenerator(Printer):
-    def to_sql(self):
-        return self.get_value()
+    def visitList(self, items, separator=','):
+        for i, item in enumerate(items):
+            self.visit(item)
+            if i < len(items) - 1:
+                self._buff.append(separator)
+                self.space()
+        self.space()
 
     def visit_SelectStatement(self, node):
         self.append('SELECT array_to_json(array_agg(row_to_json(data)))::text FROM (SELECT ')
@@ -98,7 +97,7 @@ class SqlGenerator(Printer):
         self.append("'{}'".format(node.value))
 
     def visit_Placeholder(self, node):
-        self.token('%s')
+        self.token(self.placeholder())
 
     def visit_SelectOrder(self, node):
         self.token('ORDER BY')

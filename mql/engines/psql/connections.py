@@ -1,5 +1,8 @@
 
 class AiopgConnection:
+
+    placeholder = 'percent'
+
     def __init__(self, pool):
         self.pool = pool
 
@@ -28,25 +31,32 @@ class AiopgConnection:
 
 
 class AsyncpgConnection:
+
+    placeholder = 'number'
+
     def __init__(self, pool):
         self.pool = pool
 
-    async def execute(self, query:str, args=None, timeout:float=None):
+    async def execute(self, query:str, params=None, timeout:float=None):
         async with self.pool.acquire() as conn:
-            return await conn.execute(query, *args, timeout)
+            params = params or []
+            return await conn.execute(query, *params, timeout)
 
     async def fetch(self, sql, params=None):
+        params = params or []
         cur = await self.execute(sql, params)
         async for row in cur:
             yield row
 
-    async def fetchall(self, query:str, args=None, timeout:float=None):
+    async def fetchall(self, query:str, params=None, timeout:float=None):
         async with self.pool.acquire() as conn:
-            return await conn.fetch(query, *args, timeout=timeout)
+            params = params or []
+            return await conn.fetch(query, *params, timeout=timeout)
 
-    async def fetchone(self, query:str, args=None, timeout:float=None):
+    async def fetchone(self, query:str, params=None, timeout:float=None):
         async with self.pool.acquire() as conn:
-            return await conn.fetchrow(query, *args, timeout=timeout)
+            params = params or []
+            return await conn.fetchrow(query, *params, timeout=timeout)
 
 
 

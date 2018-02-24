@@ -6,11 +6,13 @@ from mql.common.errors import MqlEnginError
 from .generator import SqlGenerator
 from .schema import load_schema
 
+
 NOT_EXSITS_ERROR = re.compile(
     r'^(column|relation) "([a-z0-9_.]+)" does not exist$', re.IGNORECASE)
 
 SYNTAX_ERROR = re.compile(
     r'^syntax error at or near "([a-z0-9_.]+)"$', re.IGNORECASE)
+
 
 class PgsqlEngine:
     def __init__(self, connection):
@@ -30,7 +32,7 @@ class PgsqlEngine:
             raise MqlEnginError(*extract_error(ex))
 
     def build_sql(self, ast_node):
-        generator = SqlGenerator()
+        generator = SqlGenerator(self.connection.placeholder)
         generator.visit(ast_node)
         return generator.to_sql()
 
