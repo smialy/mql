@@ -1,29 +1,28 @@
 import sys
 import traceback
 
-from mql.parser.parser import parse, expression
-from mql.validation import validate
 from mql.common.traverse import NodeTransformer, NodeVisitor
 from mql.common import ast, errors
-from mql.common.schema import Schema
-
+from mql.parser.parser import parse
 
 class Mql:
-    def __init__(self, executors=None, sources=None, default_source='default'):
-        self._schema = Schema()
-        self._executors = executors or []
+    def __init__(self, sources=None, default_source='default'):
         self._transformers = [
             SourceTransformer(default_source)
         ]
+        self._sources = [
+            SourceListExcecutor(),
+            SourceTableExcecutor()
+        ]
         if sources:
-            for db in sources:
-                self.add_source(db)
+            self.add_sources(sources)
 
-    def add_executor(self, source):
-        self._executors.append(source)
+    def add_sources(self, sources):
+        for source in sources:
+            self.add_source(source)
 
     def add_source(self, source):
-        self._schema.add_source(source)
+        self._sources.append(source)
 
     def add_transformer(self, transformer):
         self._transformers.append(transformer)
@@ -34,32 +33,32 @@ class Mql:
             for transformer in self._transformers:
                 ast_node = transformer.visit(ast_node)
 
+            source = self._find_source(ast_node)
             context = ExecutionContext(
-                self._executors,
-                self._schema,
+                self._sources,
                 ast_node,
                 params,
                 query
             )
-            executor = get_executor(context.ast_node)
-            return ExecuteResult(await executor.execute(context))
+            return ExecuteResult(await source.execute(context))
         except Exception as ex:
-            # print(ex)
-            # exc_type, exc_value, exc_traceback = sys.exc_info()
-            # print(exc_type, exc_value)
-            # traceback.print_tb(exc_traceback)
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print(exc_type, exc_value)
+            traceback.print_tb(exc_traceback)
             return ExecuteResult(errors=[ex])
 
-def get_executor(ast_node):
-    Excecutor = ExcecutorFinder().visit(ast_node)
-    return Excecutor()
+    def _find_source(self, ast_node):
+        for source in self._sources:
+            if source.match(ast_node):
+                return source
+        raise errors.MqlError('Not found source')
 
 
 class ExecutionContext:
-    def __init__(self, executors, schema, ast_node, params, query):
+    def __init__(self, sources, ast_node, params, query):
         self.errors = []
-        self.executors = executors
-        self.schema = schema
+        self.sources = sources
         self.ast_node = ast_node
         self.params = params
         self.query = query
@@ -68,44 +67,33 @@ class ExecutionContext:
         self.errors.append(error)
 
 
-class IExcecutor:
-    def execute(self, context):
-        pass
+class SourceListExcecutor:
+    def match(self, ast_node):
+        return isinstance(ast_node, ast.ShowSourcesStatement)
 
-
-class SourceExcecutor(IExcecutor):
     async def execute(self, context):
-        executor = self._find_executor(context)
-        return await executor.execute(
-            context.ast_node, context.params
-        )
-
-    def _find_executor(self, context):
-        source_name = context.ast_node.table.source
-        for executor in context.executors:
-            if executor.match(source_name):
-                return executor
-        raise errors.MqlError('Not found source: {}'.format(source_name))
+        sources = context.sources
+        return [source.name for source in sources if not is_describe_source(source)]
 
 
-class SourcesExcecutor(IExcecutor):
-    async def execute(self, context):
-        sources = context.schema.sources
-        return [db.name for db in sources]
+def is_describe_source(source):
+    return isinstance(source, (SourceListExcecutor, SourceTableExcecutor))
 
 
-class DescribeExcecutor(IExcecutor):
+class SourceTableExcecutor:
+    def match(self, ast_node):
+        return isinstance(ast_node, ast.ShowTablesStatement)
+
     async def execute(self, context):
         source = self._find_source(context)
-        return source.serialize()
+        return source.describe()
 
     def _find_source(self, context):
         source_name = context.ast_node.source.name
-        sources = context.schema.sources
-        for source in sources:
-            if source.name == source_name:
+        for source in context.sources:
+            if not is_describe_source(source) and source.name == source_name:
                 return source
-        raise errors.MqlError('Not found source: {}'.format(source_name))
+        raise errors.MqlError('Not found source')
 
 
 class ExecuteResult:
@@ -116,18 +104,6 @@ class ExecuteResult:
 
     def has_errors():
         return bool(self.errors)
-
-
-class ExcecutorFinder(NodeVisitor):
-
-    def visit_SelectStatement(self, node):
-        return SourceExcecutor
-
-    def visit_ShowSourcesStatement(self, node):
-        return SourcesExcecutor
-
-    def visit_ShowTablesStatement(self, node):
-        return DescribeExcecutor
 
 
 class SourceTransformer(NodeTransformer):

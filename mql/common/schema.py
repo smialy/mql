@@ -14,41 +14,16 @@ class _Named:
         data.update(**extra_data)
         return data
 
-
-class Schema:
-    def __init__(self):
-        self._sources = []
-
-    def add_source(self, source):
-        self._sources.append(source)
-
-    def find_source(self, name):
-        for source in self._sources:
-            if source.name == name:
-                return source
-        return None
-
-    @property
-    def sources(self):
-        return list(self._sources)
-
-
-    def match(self, ast_node):
-        for source in self.sources:
-            if source.match(ast_node):
-                return source
-
-    def serialize(self):
-        return [source.serialize() for source in self._sources]
-
-
 class Source(_Named):
-    def __init__(self, name=''):
+    def __init__(self, name):
         super().__init__(name)
         self._tables = []
 
     def add_table(self, table):
         self._tables.append(table)
+
+    def match(self, ast_node):
+        return self.name == ast_node.table.source
 
     @property
     def tables(self):

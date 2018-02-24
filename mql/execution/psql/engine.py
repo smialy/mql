@@ -1,6 +1,4 @@
-import sys
 import re
-import traceback
 
 from mql.common.errors import MqlEnginError
 from .generator import SqlGenerator
@@ -22,11 +20,12 @@ class PgsqlEngine:
     async def load_schema(self, name):
         return await load_schema(self.connection, name)
 
-    async def execute(self, ast_tree, params):
-        sql = self.build_sql(ast_tree)
+    async def execute(self, context):
+
+        sql = self.build_sql(context.ast_node)
         try:
-            print(sql, params)
-            data = await self.connection.fetchall(sql, params)
+            print(sql, context)
+            data = await self.connection.fetchall(sql, context.params)
             return data[0][0]
         except Exception as ex:
             raise MqlEnginError(*extract_error(ex))
@@ -45,9 +44,7 @@ def extract_error(exeption):
         kind = kind[0].upper() + kind[1:]
         return '{} "{}" does not exist'.format(kind, name), True
     result = SYNTAX_ERROR.match(line)
-    print(line, result)
     if result:
         identifier = result.group(1)
         return 'Syntax error at or near "{}"'.format(identifier), True
     return str(exeption), False
-

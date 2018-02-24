@@ -1,6 +1,9 @@
 class MqlError(Exception):
     pass
 
+class NotFoundSourceError(MqlError):
+    pass
+
 
 class MqlEnginError(MqlError):
     __slots__ = ('message', 'secure')

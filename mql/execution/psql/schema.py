@@ -2,13 +2,19 @@
 import re
 import collections
 from pathlib import Path
-from collections import defaultdict
 from mql.common import schema
 
 
-_sql_file = Path(__file__).parent / 'schema.sql'
-with open(_sql_file) as f:
-    SQL = f.read()
+async def load_schema(connection, name):
+    sql_file = Path(__file__).parent / 'schema.sql'
+    with open(sql_file) as f:
+        SQL = f.read()
+    rows = await connection.fetchall(SQL)
+    builder = Builder()
+    for row in rows:
+        builder.add(row[0])
+    return builder.get_schema(name)
+
 
 # https://www.postgresql.org/docs/10/static/catalog-pg-class.html
 # pg_catalog.pg_class.relkind
@@ -158,14 +164,6 @@ class Builder:
                     return True
         return False
 
-    def get_tables(self):
-        for clazz in self.classes:
-            name = '{}.{}'.format(clazz.namespace.name, clazz.name)
-            table = schema.Table(name, clazz.kind)
-            for column in self.get_columns(clazz.id):
-                table.add_column(column)
-            yield table
-
     def get_columns(self, class_id):
         for attr in self.get_attrs(class_id):
             # constraint = self.get_constraint(class_id)
@@ -247,23 +245,24 @@ class Builder:
                 return node
 
     def get_schema(self, name):
-        db = schema.Source(name)
+        source = schema.Source(name)
         for table in self.get_tables():
-            db.add_table(table)
-        return db
+            source.add_table(table)
+        return source
+
+    def get_tables(self):
+        for clazz in self.classes:
+            name = '{}.{}'.format(clazz.namespace.name, clazz.name)
+            table = schema.Table(name, clazz.kind)
+            for column in self.get_columns(clazz.id):
+                table.add_column(column)
+            yield table
+
 
     def get_attrs(self, class_id):
         for attr in self.attrs:
             if attr.class_id == class_id:
                 yield attr
-
-
-async def load_schema(connection, name):
-    rows = await connection.fetchall(SQL)
-    builder = Builder()
-    for row in rows:
-        builder.add(row[0])
-    return builder.get_schema(name)
 
 
 MATCH_VARCHAR = re.compile(r'character varying\((\d+)\)', re.I)
