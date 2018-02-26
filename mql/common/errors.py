@@ -5,7 +5,7 @@ class NotFoundSourceError(MqlError):
     pass
 
 
-class MqlEnginError(MqlError):
+class MqlEngineError(MqlError):
     __slots__ = ('message', 'secure')
 
     def __init__(self, message, secure=False):

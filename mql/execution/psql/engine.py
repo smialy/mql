@@ -1,6 +1,6 @@
 import re
 
-from mql.common.errors import MqlEnginError
+from mql.common import errors, execution
 from .generator import SqlGenerator
 from .schema import load_schema
 
@@ -21,18 +21,16 @@ class PgsqlEngine:
         return await load_schema(self.connection, name)
 
     async def execute(self, context):
-
-        sql = self.build_sql(context.ast_node)
+        sql = self.build_sql(context.ast_document)
         try:
-            print(sql, context)
             data = await self.connection.fetchall(sql, context.params)
-            return data[0][0]
+            return execution.ExecuteResult(data[0][0], encoded=True)
         except Exception as ex:
-            raise MqlEnginError(*extract_error(ex))
+            raise errors.MqlEngineError(*extract_error(ex)) from ex
 
-    def build_sql(self, ast_node):
+    def build_sql(self, ast_document):
         generator = SqlGenerator(self.connection.placeholder)
-        generator.visit(ast_node)
+        generator.visit(ast_document)
         return generator.to_sql()
 
 

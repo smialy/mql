@@ -1,8 +1,8 @@
 import sys
 import traceback
 
-from mql.common.traverse import NodeTransformer, NodeVisitor
-from mql.common import ast, errors
+from mql.common.traverse import NodeTransformer
+from mql.common import ast, errors, execution
 from mql.parser.parser import parse
 
 class Mql:
@@ -29,47 +29,36 @@ class Mql:
 
     async def execute(self, query, params=None):
         try:
-            ast_node = parse(query)
+            ast_document = parse(query)
             for transformer in self._transformers:
-                ast_node = transformer.visit(ast_node)
+                ast_document = transformer.visit(ast_document)
 
-            source = self._find_source(ast_node)
-            context = ExecutionContext(
+            source = self._find_source(ast_document)
+
+            context = execution.ExecutionContext(
                 self._sources,
-                ast_node,
+                ast_document,
                 params,
                 query
             )
-            return ExecuteResult(await source.execute(context))
+            return await source.execute(context)
         except Exception as ex:
-            print(ex)
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            print(exc_type, exc_value)
-            traceback.print_tb(exc_traceback)
-            return ExecuteResult(errors=[ex])
+            # print(ex)
+            # exc_type, exc_value, exc_traceback = sys.exc_info()
+            # print(exc_type, exc_value)
+            # traceback.print_tb(exc_traceback)
+            return execution.ExecuteResult(errors=[ex])
 
-    def _find_source(self, ast_node):
+    def _find_source(self, ast_document):
         for source in self._sources:
-            if source.match(ast_node):
+            if source.match(ast_document):
                 return source
         raise errors.MqlError('Not found source')
 
 
-class ExecutionContext:
-    def __init__(self, sources, ast_node, params, query):
-        self.errors = []
-        self.sources = sources
-        self.ast_node = ast_node
-        self.params = params
-        self.query = query
-
-    def report_error(self, error):
-        self.errors.append(error)
-
-
 class SourceListExcecutor:
-    def match(self, ast_node):
-        return isinstance(ast_node, ast.ShowSourcesStatement)
+    def match(self, ast_document):
+        return isinstance(ast_document, ast.ShowSourcesStatement)
 
     async def execute(self, context):
         sources = context.sources
@@ -81,29 +70,19 @@ def is_describe_source(source):
 
 
 class SourceTableExcecutor:
-    def match(self, ast_node):
-        return isinstance(ast_node, ast.ShowTablesStatement)
+    def match(self, ast_document):
+        return isinstance(ast_document, ast.ShowTablesStatement)
 
     async def execute(self, context):
         source = self._find_source(context)
         return source.describe()
 
     def _find_source(self, context):
-        source_name = context.ast_node.source.name
+        source_name = context.ast_document.source.name
         for source in context.sources:
             if not is_describe_source(source) and source.name == source_name:
                 return source
         raise errors.MqlError('Not found source')
-
-
-class ExecuteResult:
-    def __init__(self, data=None, errors=None):
-        self.data = data
-        self.errors = errors
-        self.encoded = isinstance(data, str)
-
-    def has_errors():
-        return bool(self.errors)
 
 
 class SourceTransformer(NodeTransformer):

@@ -37,7 +37,7 @@ class AsyncpgConnection:
     def __init__(self, pool):
         self.pool = pool
 
-    async def execute(self, query:str, params=None, timeout:float=None):
+    async def execute(self, query: str, params=None, timeout: float=None):
         async with self.pool.acquire() as conn:
             params = params or []
             return await conn.execute(query, *params, timeout)
@@ -48,12 +48,12 @@ class AsyncpgConnection:
         async for row in cur:
             yield row
 
-    async def fetchall(self, query:str, params=None, timeout:float=None):
+    async def fetchall(self, query: str, params=None, timeout: float=None):
         async with self.pool.acquire() as conn:
             params = params or []
             return await conn.fetch(query, *params, timeout=timeout)
 
-    async def fetchone(self, query:str, params=None, timeout:float=None):
+    async def fetchone(self, query: str, params=None, timeout: float=None):
         async with self.pool.acquire() as conn:
             params = params or []
             return await conn.fetchrow(query, *params, timeout=timeout)

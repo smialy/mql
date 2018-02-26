@@ -14,6 +14,7 @@ class _Named:
         data.update(**extra_data)
         return data
 
+
 class Source(_Named):
     def __init__(self, name):
         super().__init__(name)
@@ -22,8 +23,8 @@ class Source(_Named):
     def add_table(self, table):
         self._tables.append(table)
 
-    def match(self, ast_node):
-        return self.name == ast_node.table.source
+    def match(self, ast_document):
+        return self.name == ast_document.table.source
 
     @property
     def tables(self):
@@ -53,7 +54,7 @@ class Table(_Named):
 
     @property
     def columns(self):
-        return list(elf._columns)
+        return list(self._columns)
 
     @property
     def constraints(self):
@@ -67,7 +68,7 @@ class Table(_Named):
 
     def serialize(self):
         return super().serialize(
-            constraints=[constraint.serialize() for constraints in self._constraints],
+            constraints=[constraint.serialize() for constraint in self._constraints],
             columns=[column.serialize() for column in self._columns]
         )
 
