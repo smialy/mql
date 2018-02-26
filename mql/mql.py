@@ -4,7 +4,7 @@ import traceback
 from mql.common.traverse import NodeTransformer
 from mql.common import ast, errors, execution
 from mql.parser.parser import parse
-
+from mql.validation import validate
 
 class Mql:
     def __init__(self, sources=None, default_source='default'):
@@ -33,6 +33,10 @@ class Mql:
             ast_document = parse(query)
             for transformer in self._transformers:
                 ast_document = transformer.visit(ast_document)
+
+            errors = validate(self._sources, ast_document, params)
+            if errors:
+                return execution.ExecuteResult(errors=errors)
 
             source = self._find_source(ast_document)
             context = execution.ExecutionContext(
@@ -75,7 +79,7 @@ class SourceTableExcecutor:
 
     async def execute(self, context):
         source = self._find_source(context)
-        return execution.ExecuteResult(source.schema.describe())
+        return execution.ExecuteResult(source.schema.serialize())
 
     def _find_source(self, context):
         source_name = context.ast_document.source.name
