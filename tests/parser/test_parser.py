@@ -651,12 +651,12 @@ def test_show_sources():
 
 
 def test_show_tables():
-    stmt = parse('SHOW TABLES foo')
-    assert isinstance(stmt, ast.ShowTablesStatement)
+    stmt = parse('SHOW SOURCE foo')
+    assert isinstance(stmt, ast.ShowSourceStatement)
     assert isinstance(stmt.source, ast.Source)
     assert stmt.source.name == 'foo'
 
-    stmt = parse('SHOW TABLES foo.bar')
-    assert isinstance(stmt, ast.ShowTablesStatement)
+    stmt = parse('SHOW SOURCE foo.bar')
+    assert isinstance(stmt, ast.ShowSourceStatement)
     assert isinstance(stmt.source, ast.Source)
     assert stmt.source.name == 'foo.bar'

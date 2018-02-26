@@ -246,9 +246,9 @@ def parse_show(parser):
     name = token.value.upper()
     if name == 'SOURCES':
         return ast.ShowSourcesStatement()
-    if name == 'TABLES':
+    if name == 'SOURCE':
         value = parse_identifier_name(parser)
-        return ast.ShowTablesStatement(ast.Source(value))
+        return ast.ShowSourceStatement(ast.Source(value))
     msg = 'Unknow show statement: {}'.format(name)
     raise MqlSyntaxError(msg, parser.source, token.start)
 

@@ -37,7 +37,7 @@ class Source(_Named):
 
 
 class Table(_Named):
-    def __init__(self, name, kind, editable=True):
+    def __init__(self, name, kind=None, editable=True):
         super().__init__(name)
         self._kind = kind
         self._editable = editable

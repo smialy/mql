@@ -321,7 +321,7 @@ class ShowSourcesStatement(_ShowStatement):
         return '<ShowSources>'
 
 
-class ShowTablesStatement(_ShowStatement):
+class ShowSourceStatement(_ShowStatement):
     __slots__ = ('source', )
 
     def __init__(self, source):

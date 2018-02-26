@@ -5,6 +5,7 @@ from mql.common.traverse import NodeTransformer
 from mql.common import ast, errors, execution
 from mql.parser.parser import parse
 
+
 class Mql:
     def __init__(self, sources=None, default_source='default'):
         self._transformers = [
@@ -34,7 +35,6 @@ class Mql:
                 ast_document = transformer.visit(ast_document)
 
             source = self._find_source(ast_document)
-
             context = execution.ExecutionContext(
                 self._sources,
                 ast_document,
@@ -43,10 +43,10 @@ class Mql:
             )
             return await source.execute(context)
         except Exception as ex:
-            # print(ex)
-            # exc_type, exc_value, exc_traceback = sys.exc_info()
-            # print(exc_type, exc_value)
-            # traceback.print_tb(exc_traceback)
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print(exc_type, exc_value)
+            traceback.print_tb(exc_traceback)
             return execution.ExecuteResult(errors=[ex])
 
     def _find_source(self, ast_document):
@@ -62,8 +62,8 @@ class SourceListExcecutor:
 
     async def execute(self, context):
         sources = context.sources
-        return [source.name for source in sources if not is_describe_source(source)]
-
+        info = [source.name for source in sources if not is_describe_source(source)]
+        return execution.ExecuteResult(info)
 
 def is_describe_source(source):
     return isinstance(source, (SourceListExcecutor, SourceTableExcecutor))
@@ -71,11 +71,11 @@ def is_describe_source(source):
 
 class SourceTableExcecutor:
     def match(self, ast_document):
-        return isinstance(ast_document, ast.ShowTablesStatement)
+        return isinstance(ast_document, ast.ShowSourceStatement)
 
     async def execute(self, context):
         source = self._find_source(context)
-        return source.describe()
+        return execution.ExecuteResult(source.schema.describe())
 
     def _find_source(self, context):
         source_name = context.ast_document.source.name

@@ -25,6 +25,7 @@ KEYWORDS = (
     'VALUES',
     'WHERE',
     'SOURCES',
+    'SOURCE',
 )
 
 OPERATORS = {
