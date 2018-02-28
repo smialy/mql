@@ -348,11 +348,11 @@ def parse_select_offset(parser):
 
 def parse_insert(parser):
     parser.expect_keyword('INTO')
-    table = ast.Table(parser.expect_identifier().value)
+    table = ast.InsertTable(parse_identifier_name(parser))
     ids = parse_insert_results(parser)
     values = parse_insert_values(parser)
     if len(ids) != len(values):
-        msg = 'Incorect holders number. filed:{} holders:{}'.format(ids, values)
+        msg = 'Incorect placeholders amount. filed:{} holders:{}'.format(ids, values)
         raise MqlSyntaxError(msg, parser.source, parser.current.start)
     parser.expect_type(Tokens.EOF)
     return ast.InsertStatement(table, ids, values)
@@ -372,12 +372,14 @@ def parse_insert_values(parser):
     parser.expect_keyword('VALUES')
     parser.expect_type(Tokens.PAREN_LEFT)
     values = []
-    parser.expect_type(Tokens.QUESTION)
-    values.append(ast.Placeholder())
-    while parser.match_type(Tokens.COMA):
+    while True:
+        value = parse_value(parser)
+        if not value:
+            raise MqlSyntaxError('Incorrect update column value', parser.source)
+        values.append(value)
+        if not parser.match_type(Tokens.COMA):
+            break
         parser.next()
-        parser.expect_type(Tokens.QUESTION)
-        values.append(ast.Placeholder())
     parser.expect_type(Tokens.PAREN_RIGHT)
     return values
 
@@ -389,6 +391,7 @@ def parse_update(parser):
     where = parse_expression(parser)
     parser.expect_type(Tokens.EOF)
     return ast.UpdateStatement(table_name, columns, where)
+
 
 def parse_update_columns(parser):
     parser.expect_keyword('SET')
@@ -405,6 +408,7 @@ def parse_update_columns(parser):
             break
         parser.next()
     return columns
+
 
 def parse_delete(parser):
     parser.expect_keyword('FROM')

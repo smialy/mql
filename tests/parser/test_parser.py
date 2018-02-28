@@ -534,10 +534,27 @@ def test_select_where_order():
 
 
 
-def test_insert():
-    stmt = parse('INSERT INTO foo (a,b,c) VALUES (?, ?, ?)')
+def test_insert_simple():
+    stmt = parse('INSERT INTO foo.bar (a,b,c) VALUES (1, "a", ?)')
     assert isinstance(stmt, ast.InsertStatement)
-    assert isinstance(stmt.table, ast.Table)
+    assert isinstance(stmt.table, ast.InsertTable)
+    assert len(stmt.results) == 3
+    assert len(stmt.values) == 3
+    assert isinstance(stmt.results[0], ast.Identifier)
+    assert isinstance(stmt.results[1], ast.Identifier)
+    assert isinstance(stmt.results[1], ast.Identifier)
+    assert isinstance(stmt.values[0], ast.IntNumber)
+    assert isinstance(stmt.values[1], ast.String)
+    assert isinstance(stmt.values[2], ast.Placeholder)
+    assert stmt.table.name == 'foo.bar'
+    assert stmt.results[0].name == 'a'
+    assert stmt.results[1].name == 'b'
+
+
+def test_insert():
+    stmt = parse('INSERT INTO foo.bar (a,b,c) VALUES (?, ?, ?)')
+    assert isinstance(stmt, ast.InsertStatement)
+    assert isinstance(stmt.table, ast.InsertTable)
     assert len(stmt.results) == 3
     assert len(stmt.values) == 3
     assert isinstance(stmt.results[0], ast.Identifier)
@@ -546,7 +563,7 @@ def test_insert():
     assert isinstance(stmt.values[0], ast.Placeholder)
     assert isinstance(stmt.values[1], ast.Placeholder)
     assert isinstance(stmt.values[2], ast.Placeholder)
-    assert stmt.table.name == 'foo'
+    assert stmt.table.name == 'foo.bar'
     assert stmt.results[0].name == 'a'
     assert stmt.results[1].name == 'b'
     assert stmt.results[2].name == 'c'
@@ -617,13 +634,21 @@ def test_insert_error_size2():
         parse('INSERT INTO foo (a) VALUES (?, ?)')
 
 
+def test_update_simple():
+    stmt = parse('UPDATE foo.bar SET a=1 WHERE id=2')
+    assert isinstance(stmt, ast.UpdateStatement)
+    assert isinstance(stmt.table, ast.Table)
+    assert isinstance(stmt.where, ast.BinaryExpression)
+    assert len(stmt.columns) == 1
+    assert stmt.table.name == 'foo.bar'
+
 def test_update():
-    stmt = parse('UPDATE foo SET a=1, b="test", c=? WHERE id=?')
+    stmt = parse('UPDATE foo.bar SET a=1, b="test", c=? WHERE id=?')
     assert isinstance(stmt, ast.UpdateStatement)
     assert isinstance(stmt.table, ast.Table)
     assert isinstance(stmt.where, ast.BinaryExpression)
     assert len(stmt.columns) == 3
-    assert stmt.table.name == 'foo'
+    assert stmt.table.name == 'foo.bar'
     assert isinstance(stmt.columns[0], ast.UpdateColumn)
     assert isinstance(stmt.columns[1], ast.UpdateColumn)
     assert isinstance(stmt.columns[2], ast.UpdateColumn)
@@ -638,11 +663,11 @@ def test_update():
 
 
 def test_delete():
-    stmt = parse('DELETE FROM foo WHERE id=?')
+    stmt = parse('DELETE FROM foo.bar WHERE id=?')
     assert isinstance(stmt, ast.DeleteStatement)
     assert isinstance(stmt.table, ast.Table)
     assert isinstance(stmt.where, ast.BinaryExpression)
-    assert stmt.table.name == 'foo'
+    assert stmt.table.name == 'foo.bar'
 
 
 def test_show_sources():

@@ -96,6 +96,15 @@ class SourceTransformer(NodeTransformer):
     def visit_SelectStatement(self, node):
         return self.fix_table_name(node)
 
+    def visit_InsertStatement(self, node):
+        return self.fix_table_name(node)
+
+    def visit_UpdateStatement(self, node):
+        return self.fix_table_name(node)
+
+    def visit_DeleteStatement(self, node):
+        return self.fix_table_name(node)
+
     def fix_table_name(self, node):
         if not node.table.source:
             name = node.table.name

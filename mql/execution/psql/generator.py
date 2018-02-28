@@ -61,6 +61,27 @@ class SqlGenerator(NodeVisitor):
         self.visit(node.offset)
         self.append(') as data')
 
+    def visit_UpdateStatement(self, node):
+        self.append('UPDATE ')
+        self.visit(node.table)
+        self.append('SET')
+        self.space()
+        self.visitList(node.columns)
+        self.space()
+        self.token('WHERE')
+        self.visit(node.where)
+
+    def visit_InsertStatement(self, node):
+        self.append('INSERT INTO')
+        self.space()
+        self.visit(node.table)
+        self.space()
+        self.append('(')
+        self.visitList(node.results)
+        self.append(') VALUES (')
+        self.visitList(node.values)
+        self.append(')')
+
     def visit_SelectIdentifier(self, node):
         name = node.name if not node.alias else node.name + ' as ' + node.alias
         self.append(name)
@@ -69,6 +90,18 @@ class SqlGenerator(NodeVisitor):
         self.token('FROM')
         self.append(node.name)
         self.space()
+
+    def visit_UpdateTable(self, node):
+        self.append(node.name)
+        self.space()
+
+    def visit_InsertTable(self, node):
+        self.append(node.name)
+
+    def visit_UpdateColumn(self, node):
+        self.append(node.name)
+        self.append('=')
+        self.visit(node.value)
 
     def visit_SelectWhere(self, node):
         self.token('WHERE')

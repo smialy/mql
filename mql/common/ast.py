@@ -255,6 +255,14 @@ class InsertStatement(Statement):
             repr(self.table), repr(self.results), repr(self.values)
         )
 
+class InsertTable(Table):
+    def __repr__(self):
+        return '<InsertTable source={} name={}>'.format(
+            self.source,
+            self.name
+        )
+
+
 
 class UpdateStatement(Statement):
     __slots__ = ('table', 'columns', 'where')
@@ -287,6 +295,9 @@ class UpdateColumn(Node):
     def __init__(self, name, value):
         self.name = name
         self.value = value
+
+    def __repr__(self):
+        return '<UpdateColumn name={} value={}>'.format(self.name, self.value)
 
 
 class DeleteStatement(Statement):
