@@ -1,5 +1,5 @@
 
-class _Named:
+class Type:
     def __init__(self, name):
         self._name = name
 
@@ -15,7 +15,7 @@ class _Named:
         return data
 
 
-class Source(_Named):
+class SourceSchema(Type):
     def __init__(self, name):
         super().__init__(name)
         self._tables = []
@@ -36,7 +36,7 @@ class Source(_Named):
         )
 
 
-class Table(_Named):
+class Table(Type):
     def __init__(self, name, kind=None, editable=True):
         super().__init__(name)
         self._kind = kind
@@ -73,7 +73,7 @@ class Table(_Named):
         )
 
 
-class Column(_Named):
+class Column(Type):
     def __init__(self, name, type, default_value=None, not_null=False, is_primary=False, length=-1):
         super().__init__(name)
         self.type = type
@@ -95,4 +95,3 @@ class Column(_Named):
             enum=self.enum[:],
             is_primary=self.is_primary
         )
-

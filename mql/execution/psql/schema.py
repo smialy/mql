@@ -245,10 +245,10 @@ class Builder:
                 return node
 
     def get_schema(self, name):
-        source = schema.Source(name)
+        source_type = schema.SourceSchema(name)
         for table in self.get_tables():
-            source.add_table(table)
-        return source
+            source_type.add_table(table)
+        return source_type
 
     def get_tables(self):
         for clazz in self.classes:

@@ -13,7 +13,8 @@ class SelectUniqueResultsRule(BaseRule):
         else:
             self._names.append(name)
 
+
     def _error(self, name):
         self.context.add_error(
-            'There can be only one name: {}'.format(name)
+            'There can be only one the same name: {}'.format(name)
         )

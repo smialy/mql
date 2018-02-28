@@ -17,13 +17,13 @@ def test_select_table_dots():
 
 def test_incorrect_describe_scheme():
     with pytest.raises(MqlSyntaxError):
-        parse('NAMESPACES')
+        parse('SOURCES')
 
     with pytest.raises(MqlSyntaxError):
-        parse('SHOW TABLES')
+        parse('SOURCE')
 
     with pytest.raises(MqlSyntaxError):
-        parse('SHOW TABLE')
+        parse('SHOW SOURCE')
 
 
 def test_select_empty_from():

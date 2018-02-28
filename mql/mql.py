@@ -34,11 +34,11 @@ class Mql:
             for transformer in self._transformers:
                 ast_document = transformer.visit(ast_document)
 
-            errors = validate(self._sources, ast_document, params)
+            source = self._find_source(ast_document)
+            errors = validate(source.schema, ast_document, params)
             if errors:
                 return execution.ExecuteResult(errors=errors)
 
-            source = self._find_source(ast_document)
             context = execution.ExecutionContext(
                 self._sources,
                 ast_document,

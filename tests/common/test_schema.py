@@ -2,7 +2,7 @@ from mql.common import schema
 
 
 def test_simple_source():
-    db = schema.Source(name='source_name')
+    db = schema.SourceSchema(name='source_name')
     assert db.tables == []
     assert db.name == 'source_name'
     data = db.serialize()
@@ -11,7 +11,7 @@ def test_simple_source():
 
 
 def test_add_table_to_source():
-    db = schema.Source('source_name')
+    db = schema.SourceSchema('source_name')
     db.add_table(schema.Table('table_name'))
     assert len(db.tables) == 1
     assert db.tables[0].name == 'table_name'
