@@ -663,7 +663,7 @@ def test_update():
 
 
 def test_delete():
-    stmt = parse('DELETE FROM foo.bar WHERE id=?')
+    stmt = parse('DELETE FROM foo.bar WHERE id=1')
     assert isinstance(stmt, ast.DeleteStatement)
     assert isinstance(stmt.table, ast.Table)
     assert isinstance(stmt.where, ast.BinaryExpression)

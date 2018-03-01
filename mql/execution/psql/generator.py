@@ -82,6 +82,14 @@ class SqlGenerator(NodeVisitor):
         self.visitList(node.values)
         self.append(')')
 
+    def visit_DeleteStatement(self, node):
+        self.append('DELETE FROM')
+        self.space()
+        self.visit(node.table)
+        self.space()
+        self.token('WHERE')
+        self.visit(node.where)
+
     def visit_SelectIdentifier(self, node):
         name = node.name if not node.alias else node.name + ' as ' + node.alias
         self.append(name)
@@ -96,6 +104,9 @@ class SqlGenerator(NodeVisitor):
         self.space()
 
     def visit_InsertTable(self, node):
+        self.append(node.name)
+
+    def visit_DeleteTable(self, node):
         self.append(node.name)
 
     def visit_UpdateColumn(self, node):
