@@ -6,21 +6,20 @@ from mql.common import ast, errors, execution
 from mql.parser.parser import parse
 from mql.validation import validate
 
+
 class Mql:
-    def __init__(self, sources=None, default_source='default'):
+    def __init__(self, sources, default_source='default', *, transformers=None):
         self._transformers = [
             SourceTransformer(default_source)
         ]
         self._sources = [
             SourceListExcecutor(),
-            SourceTableExcecutor()
+            SourceTableExcecutor(),
+            *sources
         ]
-        if sources:
-            self.add_sources(sources)
-
-    def add_sources(self, sources):
-        for source in sources:
-            self.add_source(source)
+        if transformers:
+            for transformer in transformers:
+                self.add_transformer(transformer)
 
     def add_source(self, source):
         self._sources.append(source)
@@ -60,7 +59,15 @@ class Mql:
         raise errors.MqlError('Not found source')
 
 
+def is_describe_source(source):
+    return isinstance(source, (SourceListExcecutor, SourceTableExcecutor))
+
+
 class SourceListExcecutor:
+    @property
+    def schema(self):
+        return None
+
     def match(self, ast_document):
         return isinstance(ast_document, ast.ShowSourcesStatement)
 
@@ -69,11 +76,12 @@ class SourceListExcecutor:
         info = [source.name for source in sources if not is_describe_source(source)]
         return execution.ExecuteResult(info)
 
-def is_describe_source(source):
-    return isinstance(source, (SourceListExcecutor, SourceTableExcecutor))
-
 
 class SourceTableExcecutor:
+    @property
+    def schema(self):
+        return None
+
     def match(self, ast_document):
         return isinstance(ast_document, ast.ShowSourceStatement)
 
@@ -90,6 +98,7 @@ class SourceTableExcecutor:
 
 
 class SourceTransformer(NodeTransformer):
+
     def __init__(self, default_name):
         self.default_name = default_name
 
