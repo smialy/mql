@@ -5,7 +5,4 @@ default_rules = [
     SelectUniqueResultsRule
 ]
 
-__all__ = [
-    'SelectFromRule',
-    'SelectUniqueResultsRule'
-]
+__all__ = ['SelectUniqueResultsRule']

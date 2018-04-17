@@ -7,7 +7,7 @@ class NumberPlaceholder:
 
     def __call__(self):
         num = self.placeholder
-        self.placeholder+=1
+        self.placeholder += 1
         return '${}'.format(num)
 
 
@@ -52,7 +52,9 @@ class SqlGenerator(NodeVisitor):
         self.space()
 
     def visit_SelectStatement(self, node):
-        self.append('SELECT array_to_json(array_agg(row_to_json(data)))::text FROM (SELECT ')
+        self.append('SELECT ')
+        self.append('array_to_json(array_agg(row_to_json(data)))::text ')
+        self.append('FROM (SELECT ')
         self.visitList(node.results)
         self.visit(node.table)
         self.visit(node.where)

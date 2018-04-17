@@ -1,14 +1,14 @@
 import sys
 import traceback
 
-from mql.common.traverse import NodeTransformer
 from mql.common import ast, errors, execution
+from mql.common.traverse import NodeTransformer
 from mql.parser.parser import parse
 from mql.validation import validate
 
 
 class Mql:
-    def __init__(self, sources, default_source='default', *, transformers=None):
+    def __init__(self, sources, default_source='default', transformers=None):
         self._transformers = [
             SourceTransformer(default_source)
         ]
@@ -73,7 +73,9 @@ class SourceListExcecutor:
 
     async def execute(self, context):
         sources = context.sources
-        info = [source.name for source in sources if not is_describe_source(source)]
+        info = [
+            source.name for source in sources if not is_describe_source(source)
+        ]
         return execution.ExecuteResult(info)
 
 

@@ -1,18 +1,24 @@
 import re
 
 from mql.common import errors, execution
+
 from .generator import SqlGenerator
 from .schema import load_schema
 
-
 NOT_EXSITS_ERROR = re.compile(
-    r'^(column|relation) "([a-z0-9_.]+)" does not exist$', re.IGNORECASE)
+    r'^(column|relation) "([a-z0-9_.]+)" does not exist$',
+    re.IGNORECASE
+)
 
 SYNTAX_ERROR = re.compile(
-    r'^syntax error at or near "([a-z0-9_.]+)"$', re.IGNORECASE)
+    r'^syntax error at or near "([a-z0-9_.]+)"$',
+    re.IGNORECASE
+)
 
 NOT_EXSITS_ERROR_2 = re.compile(
-    r'^column "([a-z0-9_.]+)" of relation "([a-z0-9_.]+)" does not exist$', re.IGNORECASE)
+    r'^column "([a-z0-9_.]+)" of relation "([a-z0-9_.]+)" does not exist$',
+    re.IGNORECASE
+)
 
 
 class PgsqlEngine:

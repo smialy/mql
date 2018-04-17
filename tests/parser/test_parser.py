@@ -1,7 +1,8 @@
 import pytest
+
 from mql.common import ast
 from mql.common.errors import MqlSyntaxError
-from mql.parser.parser import parse, expression
+from mql.parser.parser import expression, parse
 
 
 def test_empty_expression():
@@ -81,6 +82,7 @@ def test_incorrect_limit():
     with pytest.raises(MqlSyntaxError):
         parse('SELECT * FROM a LIMIT 1,1')
 
+
 def test_incorrect_OFFSET():
     with pytest.raises(MqlSyntaxError):
         parse('SELECT * FROM OFFSET')
@@ -98,6 +100,7 @@ def test_expression_band():
     assert expr.operator == '&'
     assert expr.left.name == 'a'
     assert expr.right.name == 'b'
+
 
 def test_expression_band2():
     expr = expression('(a & b) = c')
@@ -127,6 +130,7 @@ def test_expression_one_eq_space():
     assert expr.operator == '='
     assert expr.left.name == 'a'
     assert expr.right.name == 'b'
+
 
 def test_expression_one_eq():
     expr = expression('a=b')
@@ -533,7 +537,6 @@ def test_select_where_order():
     assert stmt.order.items[0].direction == 'ASC'
 
 
-
 def test_insert_simple():
     stmt = parse('INSERT INTO foo.bar (a,b,c) VALUES (1, "a", ?)')
     assert isinstance(stmt, ast.InsertStatement)
@@ -641,6 +644,7 @@ def test_update_simple():
     assert isinstance(stmt.where, ast.BinaryExpression)
     assert len(stmt.columns) == 1
     assert stmt.table.name == 'foo.bar'
+
 
 def test_update():
     stmt = parse('UPDATE foo.bar SET a=1, b="test", c=? WHERE id=?')

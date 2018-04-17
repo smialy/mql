@@ -1,5 +1,7 @@
 import string
+
 import pytest
+
 from mql.common.errors import MqlSyntaxError
 from mql.parser.lexer import Lexer, Tokens
 

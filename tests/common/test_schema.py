@@ -7,7 +7,7 @@ def test_simple_source():
     assert db.name == 'source_name'
     data = db.serialize()
     assert data['tables'] == []
-    assert data['name'] ==  'source_name'
+    assert data['name'] == 'source_name'
 
 
 def test_add_table_to_source():
@@ -22,10 +22,9 @@ def test_simple_table():
     assert table.columns == []
     data = table.serialize()
 
-    assert data['name'] ==  'table_name'
+    assert data['name'] == 'table_name'
     assert data['columns'] == []
     assert data['constraints'] == []
-
 
 
 def test_add_column_to_table():
@@ -41,9 +40,9 @@ def test_add_column_to_table():
 
     data = columns[0].serialize()
 
-    assert data['name'] ==  'column1'
-    assert data['type'] ==  'type1'
-    assert data['not_null'] ==  False
+    assert data['name'] == 'column1'
+    assert data['type'] == 'type1'
+    assert data['not_null'] == False
     assert data['default_value'] == None
     assert data['length'] == -1
     assert data['enum'] == []

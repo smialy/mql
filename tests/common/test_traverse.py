@@ -1,6 +1,6 @@
-from mql.common import traverse
-from mql.common import ast
-from .base import create_ast_tree, VisitMixin
+from mql.common import ast, traverse
+
+from .base import VisitMixin, create_ast_tree
 
 
 def test_visitor():
@@ -8,7 +8,7 @@ def test_visitor():
 
     class TestVisitor(traverse.NodeVisitor, VisitMixin):
         def visit_SelectStatement(self, node):
-            super().visit_SelectStatement(node);
+            super().visit_SelectStatement(node)
             for id in node.results:
                 self.visit(id)
             self.visit(node.table)
@@ -44,6 +44,7 @@ def test_visitor():
 
 def test_walker():
     visited = []
+
     class Walker(traverse.NodeWalker, VisitMixin):
         pass
 

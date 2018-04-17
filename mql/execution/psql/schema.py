@@ -1,7 +1,8 @@
 # import os
-import re
 import collections
+import re
 from pathlib import Path
+
 from mql.common import schema
 
 
@@ -46,6 +47,7 @@ TYPE_ENUM = 'e'
 TYPE_PSEUDO = 'p'
 TYPE_RANGE = 'r'
 
+
 class Node:
     pass
 
@@ -79,6 +81,7 @@ class EnumNode(Node):
     def __repr__(self):
         return 'EnumNode(id={} labels={} name={})'.format(self.id, self._labels, self.name)
 
+
 class TypeNode(Node):
     def __init__(self, data):
         self.id = data['id']
@@ -91,6 +94,7 @@ class TypeNode(Node):
 
     def __repr__(self):
         return 'TypeNode(id={} kind={} name={})'.format(self.id, self.kind, self.name)
+
 
 class ConstraintNode(Node):
     def __init__(self, data):
@@ -108,6 +112,7 @@ class ConstraintNode(Node):
     def __repr__(self):
         return 'ConstraintNode(kind={} name={} class_id={} fclass_id={} refs={} frefs={})'.format(
             self.kind, self.name, self.class_id, self.fclass_id, self.refs, self.frefs)
+
 
 class ClassNode(Node):
     def __init__(self, data):
@@ -257,7 +262,6 @@ class Builder:
             for column in self.get_columns(clazz.id):
                 table.add_column(column)
             yield table
-
 
     def get_attrs(self, class_id):
         for attr in self.attrs:

@@ -5,18 +5,18 @@ import abc
 class IConnection(abc.ABC):
 
     @abc.abstractmethod
-    async def execute(self, query:str, args=None, timeout:float=None):
+    async def execute(self, query: str, args=None, timeout: float=None):
         pass
 
     @abc.abstractmethod
-    async def execute_many(self, command:str, args=None, *, timeout:float=None):
+    async def execute_many(self, command: str, args=None, *, timeout: float=None):
         '''>>> await con.executemany("""
             ...     INSERT INTO mytab (a) VALUES ($1, $2, $3);
             ... """, [(1, 2, 3), (4, 5, 6)])
         '''
 
     @abc.abstractmethod
-    async def fetch(self, query, args=None, timeout:float=None):
+    async def fetch(self, query, args=None, timeout: float=None):
         pass
 
     @abc.abstractmethod
@@ -91,6 +91,3 @@ class IConnection:
     async def update(self, table, filters, data):
         query, values = sql.update_sql(table, filters, data)
         return await self.engine.execute(query, values)
-
-
-

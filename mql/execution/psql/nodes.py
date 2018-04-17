@@ -1,5 +1,6 @@
 from mql.common.traverse import NodeVisitor
 
+
 class Buffer:
     def __init__(self):
         self._buf = []
@@ -39,14 +40,16 @@ class SqlSelect(SqlNode):
 
     def to_sql(self):
         sql = super().to_sql()
-        return 'SELECT array_to_json(array_agg(row_to_json(data)))::text FROM ({}) as data'.format(sql)
+        return 'SELECT array_to_json(array_agg(row_to_json(data)))::text'\
+               'FROM ({}) as data'.format(sql)
+
 
 def get_indentifier_name(node):
     return node.name if not node.alias else node.name + ' ' + node.alias
 
+
 def get_indentifier_names(nodes):
-    return [get_indentifier_names(identifer)
-        for identifer in nodes]
+    return [get_indentifier_names(identifer) for identifer in nodes]
 
 
 class SqlGenerator(NodeVisitor):
@@ -75,7 +78,7 @@ class SqlGenerator(NodeVisitor):
 
     def visit_BinaryExpression(self, node):
         head = self.head
-        self.head = SqlLogic()
+        self.head = SqlNode()
         head.add_node(self.head)
         self.head.write('(')
         self.visit(node.left)
@@ -83,15 +86,6 @@ class SqlGenerator(NodeVisitor):
         self.visit(node.right)
         self.head = head
         self.head.write(')')
-
-    def visit_BinaryExpression(self, node):
-        head = self.head
-        self.head = SqlNode()
-        head.add_node(self.head)
-        self.visit(node.left)
-        self.head.write(node.operator)
-        self.visit(node.right)
-        self.head = head
 
     def visit_Identifier(self, node):
         self.head.write(node.name)

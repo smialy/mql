@@ -68,7 +68,8 @@ class Table(Type):
 
     def serialize(self):
         return super().serialize(
-            constraints=[constraint.serialize() for constraint in self._constraints],
+            constraints=[constraint.serialize()
+                         for constraint in self._constraints],
             columns=[column.serialize() for column in self._columns]
         )
 

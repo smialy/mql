@@ -86,8 +86,10 @@ class _Value(Node):
 class Number(_Value):
     pass
 
+
 class String(_Value):
     pass
+
 
 class IntNumber(Number):
     def __init__(self, value):
@@ -123,13 +125,13 @@ class SelectStatement(Statement):
     __slots__ = ('results', 'table', 'where', 'order', 'limit', 'offset')
 
     def __init__(self,
-        results=None,
-        table=None,
-        where=None,
-        order=None,
-        limit=None,
-        offset=None
-    ):
+                 results=None,
+                 table=None,
+                 where=None,
+                 order=None,
+                 limit=None,
+                 offset=None
+                 ):
         self.results = results if results is not None else []
         self.table = table
         self.where = where
@@ -255,13 +257,13 @@ class InsertStatement(Statement):
             repr(self.table), repr(self.results), repr(self.values)
         )
 
+
 class InsertTable(Table):
     def __repr__(self):
         return '<InsertTable source={} name={}>'.format(
             self.source,
             self.name
         )
-
 
 
 class UpdateStatement(Statement):
@@ -274,11 +276,11 @@ class UpdateStatement(Statement):
 
     def __repr__(self):
         return '<UpdateStatement table={} columns={} where={}">'\
-        .format(
-            repr(self.table),
-            repr(self.columns),
-            repr(self.where)
-        )
+            .format(
+                repr(self.table),
+                repr(self.columns),
+                repr(self.where)
+            )
 
 
 class UpdateTable(Table):

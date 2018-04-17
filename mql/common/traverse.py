@@ -1,7 +1,7 @@
 from . import ast
 
-
-__all__ = ['NodeVisitor', 'NodeTransformer', 'NodeWalker', 'NodeWalkers', 'walk']
+__all__ = ['NodeVisitor', 'NodeTransformer',
+           'NodeWalker', 'NodeWalkers', 'walk']
 
 
 def iter_fields(node):

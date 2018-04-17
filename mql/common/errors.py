@@ -1,6 +1,7 @@
 class MqlError(Exception):
     pass
 
+
 class NotFoundSourceError(MqlError):
     pass
 
@@ -11,6 +12,7 @@ class MqlEngineError(MqlError):
     def __init__(self, message, secure=False):
         super().__init__(message)
         self.secure = secure
+
 
 class MqlSyntaxError(MqlError):
     __slots__ = ('message', 'source', 'position')

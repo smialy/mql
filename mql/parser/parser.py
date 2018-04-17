@@ -1,8 +1,8 @@
 from mql.common import ast
 from mql.common.errors import MqlSyntaxError
 
-from .consts import STATEMENTS_KEYWORDS, OPERATORS
-from .lexer import Tokens, Lexer, type_to_name
+from .consts import OPERATORS, STATEMENTS_KEYWORDS
+from .lexer import Lexer, Tokens, type_to_name
 
 
 def parse(source):
@@ -121,7 +121,7 @@ def parse_expression(parser):
     if not right:
         msg = 'Expected expression after {}'.format(operator)
         raise MqlSyntaxError(msg, parser.source)
-    stack = [left, operator, right];
+    stack = [left, operator, right]
 
     while parser.match_type(Tokens.EXPRESSION) or parser.match_keyword('AND') or parser.match_keyword('OR'):
         operator = parser.next()
@@ -190,6 +190,7 @@ def parse_value(parser):
 
     return None
 
+
 def parse_expression_group(parser):
     parser.expect_type(Tokens.PAREN_LEFT)
     node = parse_expression(parser)
@@ -200,7 +201,6 @@ def parse_expression_group(parser):
 def parse_expression_identifier(parser):
     token = parser.expect_types(Tokens.IDENTIFIER)
     return ast.Identifier(token.value)
-
 
 
 def parse_expression_in(parser):
@@ -238,7 +238,8 @@ def parse_statement(parser):
         return parse_delete(parser)
     if name == 'SHOW':
         return parse_show(parser)
-    raise MqlSyntaxError('Unknow statement: {}'.format(name), parser.source, token.start)
+    raise MqlSyntaxError('Unknow statement: {}'.format(
+        name), parser.source, token.start)
 
 
 def parse_show(parser):
@@ -251,6 +252,7 @@ def parse_show(parser):
         return ast.ShowSourceStatement(ast.Source(value))
     msg = 'Unknow show statement: {}'.format(name)
     raise MqlSyntaxError(msg, parser.source, token.start)
+
 
 def parse_select(parser):
     stmt = ast.SelectStatement()
@@ -352,7 +354,8 @@ def parse_insert(parser):
     ids = parse_insert_results(parser)
     values = parse_insert_values(parser)
     if len(ids) != len(values):
-        msg = 'Incorect placeholders amount. filed:{} holders:{}'.format(ids, values)
+        msg = 'Incorect placeholders amount. filed:{} holders:{}'.format(
+            ids, values)
         raise MqlSyntaxError(msg, parser.source, parser.current.start)
     parser.expect_type(Tokens.EOF)
     return ast.InsertStatement(table, ids, values)
@@ -375,7 +378,8 @@ def parse_insert_values(parser):
     while True:
         value = parse_value(parser)
         if not value:
-            raise MqlSyntaxError('Incorrect update column value', parser.source)
+            raise MqlSyntaxError(
+                'Incorrect update column value', parser.source)
         values.append(value)
         if not parser.match_type(Tokens.COMA):
             break
@@ -401,7 +405,8 @@ def parse_update_columns(parser):
         parser.expect('=')
         value = parse_value(parser)
         if not value:
-            raise MqlSyntaxError('Incorrect update column value', parser.source)
+            raise MqlSyntaxError(
+                'Incorrect update column value', parser.source)
 
         columns.append(ast.UpdateColumn(name, value))
         if not parser.match_type(Tokens.COMA):

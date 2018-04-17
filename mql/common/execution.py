@@ -1,7 +1,6 @@
 import logging
 from traceback import format_exception
 
-
 logger = logging.getLogger(__name__)
 
 

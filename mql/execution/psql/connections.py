@@ -57,6 +57,3 @@ class AsyncpgConnection:
         async with self.pool.acquire() as conn:
             params = params or []
             return await conn.fetchrow(query, *params, timeout=timeout)
-
-
-

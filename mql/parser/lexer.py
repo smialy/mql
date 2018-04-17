@@ -1,7 +1,9 @@
-import string
-import json
 import collections
+import json
+import string
+
 from mql.common.errors import MqlSyntaxError
+
 from .consts import KEYWORDS
 
 
@@ -175,7 +177,6 @@ class Lexer:
             self._move_to_next()
             return Token(Tokens.EXPRESSION, start, position, expr)
 
-
         raise MqlSyntaxError(
             'Invalid character: {}'.format(print_char_code(code)),
             self.source, self.position-1
@@ -256,14 +257,16 @@ class Lexer:
                     value.append(escaped)
                 else:
                     raise MqlSyntaxError(
-                        'Invalid escape character: \\{}'.format(print_char_code(code)),
+                        'Invalid escape character: \\{}'.format(
+                            print_char_code(code)),
                         self.source, self.position
                     )
                 self.position += 1
                 start = self.position
 
         if code != 34:  # quote: "
-            raise MqlSyntaxError('Unterminated string', self.source, self.position)
+            raise MqlSyntaxError('Unterminated string',
+                                 self.source, self.position)
         value.append(self.source[start:self.position])
 
         self.position += 1
